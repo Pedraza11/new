@@ -9,73 +9,77 @@
     <!-- Materialize CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app" class="container">
-        <h2>Expense Management System</h2>
+        <h2>Gestion de gastos</h2>
         <div class="row">
             <div class="input-field col s6">
                 <select id="month">
-                    <option value="0">January</option>
-                    <option value="1">February</option>
-                    <option value="2">March</option>
-                    <option value="3">April</option>
-                    <option value="4">May</option>
-                    <option value="5">June</option>
-                    <option value="6">July</option>
-                    <option value="7">August</option>
-                    <option value="8">September</option>
-                    <option value="9">October</option>
-                    <option value="10">November</option>
-                    <option value="11">December</option>
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
                 </select>
-                <label for="month">Select Month</label>
+                <label for="month">Seleccione mes actual</label>
             </div>
             <div class="input-field col s6">
                 <input type="number" id="year" min="2000" max="2099" step="1" value="2024">
-                <label for="year">Year</label>
+                <label for="year">Año</label>
             </div>
         </div>
         <form id="expense-form" class="col s12">
             <div class="row">
                 <div class="input-field col s6">
                     <input type="text" id="description" class="validate">
-                    <label for="description">Description</label>
+                    <label for="description">Descripción</label>
                 </div>
                 <div class="input-field col s6">
                     <input type="number" id="amount" class="validate">
-                    <label for="amount">Amount</label>
+                    <label for="amount">Monto</label>
                 </div>
             </div>
-            <button class="btn waves-effect waves-light" type="submit">Add Expense</button>
+            <button class="btn waves-effect waves-light submit-btn" type="submit">Agregar gasto</button>
         </form>
-        <h3>Expense List</h3>
+        <h3>Lista de gastos</h3>
         <table class="striped">
             <thead>
                 <tr>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Date</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="expense-list">
-                <!-- Expenses will be added dynamically here -->
+                <!-- Las filas de gastos se añadirán dinámicamente aquí -->
             </tbody>
         </table>
-        <h3>Monthly Summary</h3>
+        <h3>Gastos del mes</h3>
         <table class="striped">
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th>Total Expenses</th>
+                    <th>Monto</th>
+                    <th>Gasto total</th>
                 </tr>
             </thead>
             <tbody id="monthly-summary">
-                <!-- Monthly summary will be added dynamically here -->
+                <!-- El resumen mensual se añadirá dinámicamente aquí -->
             </tbody>
         </table>
     </div>
+
+    
+   
 
     <!-- Materialize JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>

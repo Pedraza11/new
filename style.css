@@ -1,0 +1,63 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: beige;
+    color: #333; /* Color de texto en modo claro */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transición suave */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 95%; /* Ajusta el ancho máximo del contenedor */
+    margin: 20px auto; /* Centra el contenedor con un margen */
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+.input-field {
+    margin-bottom: 15px;
+}
+
+table {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.notification {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: top 0.5s ease-in-out;
+}
+
+.notification.show {
+    top: 20px; /* Posición visible */
+    transition: top 0.5s ease-in-out;
+}
+
+.notification.hide {
+    top: -100px; /* Posición oculta */
+    transition: top 0.5s ease-in-out;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 5px; /* Reducir el padding en dispositivos pequeños */
+    }
+
+    table {
+        font-size: 12px; /* Tamaño de fuente más pequeño en tablas */
+    }
+}
