@@ -36,10 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const existingRow = expenseList.querySelector(`tr[data-id="${form.dataset.id}"]`);
 
         if (existingRow) {
-            // Si existe la fila, actualiza los datos
             updateExpense(description, amount, date, existingRow);
         } else {
-            // Si no existe la fila, agrega un nuevo gasto
             addExpense(description, amount, date);
         }
 
@@ -50,31 +48,38 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAndAlertTotalExpenses();
     });
 
-    // Evento de clic para botones de editar gasto
     expenseList.addEventListener('click', function(event) {
         if (event.target.classList.contains('edit-expense')) {
             event.preventDefault();
             const row = event.target.closest('tr');
             const description = row.querySelector('[data-field="description"]').textContent;
             const amount = parseFloat(row.querySelector('[data-field="amount"]').textContent.replace('$', ''));
-            // Puedes manejar la fecha según tu formato o requerimiento
 
-            // Llenar el formulario de edición con los datos del gasto seleccionado
             document.getElementById('description').value = description;
             document.getElementById('amount').value = amount;
-            // Puedes agregar lógica para manejar la fecha aquí
 
-            // Cambiar el texto del botón de enviar a "Actualizar"
             document.querySelector('.submit-btn').textContent = 'Actualizar';
-
-            // Guardar el ID del gasto actual en un atributo personalizado del formulario o en un campo oculto
             form.dataset.id = row.dataset.id;
         }
     });
 
     function addExpense(description, amount, date) {
+        const newExpenseKey = firebase.database().ref().child('expenses').push().key;
+        const expenseData = {
+            description: description,
+            amount: amount,
+            date: date,
+            month: currentMonth,
+            year: currentYear
+        };
+
+        let updates = {};
+        updates['/expenses/' + newExpenseKey] = expenseData;
+
+        firebase.database().ref().update(updates);
+
         const row = document.createElement('tr');
-        row.dataset.id = generateUniqueId(); // Genera un ID único para el gasto (implementación simulada)
+        row.dataset.id = newExpenseKey;
         row.innerHTML = `
             <td data-field="description">${description}</td>
             <td data-field="amount">$${amount.toFixed(2)}</td>
@@ -91,6 +96,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateExpense(description, amount, date, rowToUpdate) {
+        const expenseId = rowToUpdate.dataset.id;
+        const expenseData = {
+            description: description,
+            amount: amount,
+            date: date,
+            month: currentMonth,
+            year: currentYear
+        };
+
+        let updates = {};
+        updates['/expenses/' + expenseId] = expenseData;
+
+        firebase.database().ref().update(updates);
+
         rowToUpdate.innerHTML = `
             <td data-field="description">${description}</td>
             <td data-field="amount">$${amount.toFixed(2)}</td>
@@ -100,7 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
         `;
 
-        // Recalcular el total de gastos mensuales
         totalExpenses = 0;
         expenseList.querySelectorAll('tr').forEach(row => {
             totalExpenses += parseFloat(row.querySelector('[data-field="amount"]').textContent.replace('$', ''));
@@ -110,50 +128,61 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAndAlertTotalExpenses();
     }
 
-    function updateMonthlySummary() {
-        let monthName = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' });
-        let existingRow = document.querySelector(`#monthly-summary tr[data-month="${currentMonth}-${currentYear}"]`);
+    function updateExpenseList() {
+        firebase.database().ref('expenses').orderByChild('year').equalTo(currentYear).once('value', snapshot => {
+            expenseList.innerHTML = '';
+            totalExpenses = 0;
 
-        if (existingRow) {
-            existingRow.querySelector('.total').textContent = `$${totalExpenses.toFixed(2)}`;
-        } else {
-            const row = document.createElement('tr');
-            row.setAttribute('data-month', `${currentMonth}-${currentYear}`);
-            row.innerHTML = `
-                <td>${monthName} ${currentYear}</td>
-                <td class="total">$${totalExpenses.toFixed(2)}</td>
-            `;
-            monthlySummary.appendChild(row);
-        }
+            snapshot.forEach(childSnapshot => {
+                const expense = childSnapshot.val();
+                if (expense.month === currentMonth) {
+                    const row = document.createElement('tr');
+                    row.dataset.id = childSnapshot.key;
+                    row.innerHTML = `
+                        <td data-field="description">${expense.description}</td>
+                        <td data-field="amount">$${expense.amount.toFixed(2)}</td>
+                        <td data-field="date">${expense.date}</td>
+                        <td>
+                            <a href="#" class="edit-expense">Editar</a>
+                        </td>
+                    `;
+                    expenseList.appendChild(row);
+                    totalExpenses += expense.amount;
+                }
+            });
+
+            updateMonthlySummary();
+            checkAndAlertTotalExpenses();
+        });
     }
 
-    function updateExpenseList() {
-        totalExpenses = 0;
-        expenseList.innerHTML = '';
-
-        document.getElementById('month').selectedIndex = currentMonth;
-        document.getElementById('year').value = currentYear;
-
-        updateMonthlySummary();
+    function updateMonthlySummary() {
+        monthlySummary.innerHTML = `
+            <tr>
+                <td>${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })}</td>
+                <td>$${totalExpenses.toFixed(2)}</td>
+            </tr>
+        `;
     }
 
     function checkExceedPreviousMonth() {
-        if (currentMonth === 0) {
-            var previousMonth = 11;
-            var previousYear = currentYear - 1;
-        } else {
-            var previousMonth = currentMonth - 1;
-            var previousYear = currentYear;
-        }
+        const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-        let previousMonthRow = document.querySelector(`#monthly-summary tr[data-month="${previousMonth}-${previousYear}"]`);
+        firebase.database().ref('expenses').orderByChild('year').equalTo(previousYear).once('value', snapshot => {
+            let previousMonthTotal = 0;
 
-        if (previousMonthRow) {
-            let previousMonthTotal = parseFloat(previousMonthRow.querySelector('.total').textContent.replace('$', ''));
+            snapshot.forEach(childSnapshot => {
+                const expense = childSnapshot.val();
+                if (expense.month === previousMonth) {
+                    previousMonthTotal += expense.amount;
+                }
+            });
+
             if (totalExpenses > previousMonthTotal) {
                 showNotification(`Has gastado más este mes que en ${new Date(previousYear, previousMonth).toLocaleString('default', { month: 'long' })}.`);
             }
-        }
+        });
     }
 
     function checkAndAlertTotalExpenses() {
@@ -206,15 +235,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // Función para generar un ID único (implementación simulada)
-    function generateUniqueId() {
-        return Math.random().toString(36).substr(2, 9);
-    }
-
     // Evento de clic para el botón de modo oscuro
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     darkModeToggle.addEventListener('click', function() {
         document.body.classList.toggle('dark-mode');
     });
 
+    // Inicializar la lista de gastos al cargar la página
+    updateExpenseList();
 });
