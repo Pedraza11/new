@@ -1,4 +1,12 @@
-const pool = require('./db');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'expense_management',
+    password: 'SANti11.11',
+    port: 5432,
+});
 
 const addExpense = async (description, amount, date, month, year) => {
     try {
@@ -17,9 +25,27 @@ const addExpense = async (description, amount, date, month, year) => {
 const getExpensesByMonthAndYear = async (month, year) => {
     try {
         const res = await pool.query('SELECT * FROM expenses WHERE month = $1 AND year = $2', [month, year]);
-        return res.rows;
+        const expenses = res.rows.map(expense => ({
+            ...expense,
+            amount: parseFloat(expense.amount)
+        }));
+        return expenses;
     } catch (error) {
         console.error('Error al obtener gastos por mes y año:', error);
+        throw error;
+    }
+};
+
+const getExpensesByYear = async (year) => {
+    try {
+        const res = await pool.query('SELECT * FROM expenses WHERE year = $1', [year]);
+        const expenses = res.rows.map(expense => ({
+            ...expense,
+            amount: parseFloat(expense.amount)
+        }));
+        return expenses;
+    } catch (error) {
+        console.error('Error al obtener gastos por año:', error);
         throw error;
     }
 };
@@ -27,4 +53,5 @@ const getExpensesByMonthAndYear = async (month, year) => {
 module.exports = {
     addExpense,
     getExpensesByMonthAndYear,
+    getExpensesByYear,
 };

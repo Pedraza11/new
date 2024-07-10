@@ -1,23 +1,39 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { addExpense, getExpensesByYear } = require('./expenseService'); // Asegúrate de importar la función correcta
+const { Pool } = require('pg');
+
+const { addExpense, getExpensesByMonthAndYear, getExpensesByYear } = require('./expenseService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
-app.use(express.static(__dirname)); // Servir archivos estáticos desde el directorio actual
-
-// Ruta para la página de inicio
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'expense_management',
+    password: 'SANti11.11',
+    port: 5432,
 });
 
-// Ruta para agregar un nuevo gasto
+app.use(bodyParser.json());
+app.use(express.static(__dirname + '/public')); // Servir archivos estáticos desde el directorio 'public'
+
+// Ruta para servir la página principal
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
+// Ruta para agregar un gasto
 app.post('/add-expense', async (req, res) => {
     const { description, amount, date, month, year } = req.body;
     try {
-        await addExpense(description, amount, date, month, year);
+        const client = await pool.connect();
+        const result = await client.query(
+            'INSERT INTO expenses (description, amount, date, month, year) VALUES ($1, $2, $3, $4, $5)',
+            [description, amount, date, month, year]
+        );
+        client.release();
+        console.log('Gasto agregado:', result.rows);
         res.status(200).send('Gasto agregado');
     } catch (error) {
         console.error('Error al agregar gasto:', error);
@@ -25,18 +41,51 @@ app.post('/add-expense', async (req, res) => {
     }
 });
 
-// Ruta para obtener todos los gastos de un año específico
+// Ruta para obtener gastos filtrados por mes y año
 app.get('/expenses', async (req, res) => {
-    const { year } = req.query;
+    const { month, year } = req.query;
     try {
-        const expenses = await getExpensesByYear(year);
-        res.status(200).json(expenses); // Devolver los gastos como JSON válido
+        const client = await pool.connect();
+        let query = 'SELECT * FROM expenses';
+        const params = [];
+
+        if (month && year) {
+            query += ' WHERE month = $1 AND year = $2';
+            params.push(month, year);
+        } else if (year) {
+            query += ' WHERE year = $1';
+            params.push(year);
+        }
+
+        const result = await client.query(query, params);
+        client.release();
+        const expenses = result.rows.map(expense => ({
+            ...expense,
+            amount: parseFloat(expense.amount)
+        }));
+        res.status(200).json(expenses);
     } catch (error) {
         console.error('Error al obtener gastos:', error);
         res.status(500).send('Error al obtener gastos');
     }
 });
 
+// Ruta para eliminar un gasto por ID
+app.delete('/delete-expense/:id', async (req, res) => {
+    const expenseId = req.params.id;
+    try {
+        const client = await pool.connect();
+        const result = await client.query('DELETE FROM expenses WHERE id = $1', [expenseId]);
+        client.release();
+        console.log('Gasto eliminado:', result.rowCount);
+        res.status(200).send('Gasto eliminado');
+    } catch (error) {
+        console.error('Error al eliminar gasto:', error);
+        res.status(500).send('Error al eliminar gasto');
+    }
+});
+
+// Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
