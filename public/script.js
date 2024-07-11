@@ -2,23 +2,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('expense-form');
     const expenseList = document.getElementById('expense-list');
     const monthlySummary = document.getElementById('monthly-summary').getElementsByTagName('tbody')[0];
-    let currentMonth = localStorage.getItem('currentMonth') || new Date().getMonth().toString(); // Obtener el mes almacenado o el mes actual como cadena
-    let currentYear = new Date().getFullYear();
+    const monthSelect = document.getElementById('month');
+    const yearInput = document.getElementById('year');
+    let currentMonth = localStorage.getItem('currentMonth') || new Date().getMonth().toString();
+    let currentYear = new Date().getFullYear().toString();
 
     M.FormSelect.init(document.querySelectorAll('select'));
 
-    document.getElementById('year').value = currentYear;
-    document.getElementById('month').value = currentMonth; // Establecer el mes seleccionado desde localStorage
+    // Establecer el mes y año seleccionados al cargar la página
+    yearInput.value = currentYear;
+    monthSelect.value = currentMonth;
 
-    document.getElementById('month').addEventListener('change', function() {
+    // Forzar la actualización del selector de Materialize para que muestre el valor almacenado
+    M.FormSelect.getInstance(monthSelect).destroy();
+    M.FormSelect.init(document.querySelectorAll('select'));
+
+    monthSelect.addEventListener('change', function() {
         currentMonth = this.value;
-        localStorage.setItem('currentMonth', currentMonth); // Almacenar el mes seleccionado en localStorage
+        localStorage.setItem('currentMonth', currentMonth);
         updateExpenseList();
         updateMonthlySummary();
     });
 
-    document.getElementById('year').addEventListener('change', function() {
-        currentYear = parseInt(this.value);
+    yearInput.addEventListener('change', function() {
+        currentYear = this.value;
+        localStorage.setItem('currentYear', currentYear);
         updateExpenseList();
         updateMonthlySummary();
     });
@@ -33,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Obtener la fecha actual solo para visualización, no para modificar la fecha real
         const date = new Date(currentYear, currentMonth, new Date().getDate()).toLocaleDateString();
         const expenseData = { description, amount, date, month: currentMonth, year: currentYear };
 
@@ -52,6 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             form.reset();
             M.updateTextFields();
+
+            // Restaurar el valor del selector de mes después de resetear el formulario
+            monthSelect.value = currentMonth;
+            yearInput.value = currentYear;
+
+            M.FormSelect.getInstance(monthSelect).destroy();
+            M.FormSelect.init(document.querySelectorAll('select'));
+
             M.toast({ html: 'Gasto agregado exitosamente' });
             updateExpenseList();
             updateMonthlySummary();
@@ -101,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
             expenseList.appendChild(tr);
         });
 
-        // Agregar event listener para botones de eliminar
         const deleteButtons = document.querySelectorAll('.delete-btn');
         deleteButtons.forEach(button => {
             button.addEventListener('click', async () => {
@@ -125,25 +139,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Agregar event listener para botones de editar
         const editButtons = document.querySelectorAll('.edit-btn');
         editButtons.forEach(button => {
             button.addEventListener('click', async () => {
                 const expenseId = button.getAttribute('data-id');
-                // Implementa la lógica para editar el gasto aquí
                 console.log('Implementa la lógica para editar el gasto con ID:', expenseId);
-                // Puedes abrir un modal con los datos actuales y permitir la edición
+                // Aquí puedes implementar la lógica para editar el gasto
             });
         });
     }
 
     function renderMonthlySummary(summary) {
         monthlySummary.innerHTML = '';
-        summary.forEach(monthData => {
+        summary.forEach(monthly => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${new Date(monthData.year, monthData.month).toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</td>
-                <td>${monthData.total.toFixed(2)}</td>
+                <td>${monthly.month}/${monthly.year}</td>
+                <td>${monthly.total.toFixed(2)}</td>
             `;
             monthlySummary.appendChild(tr);
         });
