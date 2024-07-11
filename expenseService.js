@@ -1,12 +1,4 @@
-const { Pool } = require('pg');
-
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'expense_management',
-    password: 'SANti11.11',
-    port: 5432,
-});
+const pool=require('./db')
 
 const addExpense = async (description, amount, date, month, year) => {
     try {
