@@ -7,13 +7,7 @@ const { addExpense, getExpensesByMonthAndYear, getExpensesByYear } = require('./
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'expense_management',
-    password: 'SANti11.11',
-    port: 5432,
-});
+const pool=require('./db')
 
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public')); // Servir archivos estáticos desde el directorio 'public'
