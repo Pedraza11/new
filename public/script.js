@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         summary.forEach(monthly => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${monthly.month}/${monthly.year}</td>
+                <td>${monthly.month+1}/${monthly.year}</td>
                 <td>${monthly.total.toFixed(2)}</td>
             `;
             monthlySummary.appendChild(tr);
