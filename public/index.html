@@ -13,6 +13,29 @@
         <div class="row">
             <form id="expense-form" class="col s12">
                 <div class="row">
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <select id="month">
+                                <option value="0">Enero</option>
+                                <option value="1">Febrero</option>
+                                <option value="2">Marzo</option>
+                                <option value="3">Abril</option>
+                                <option value="4">Mayo</option>
+                                <option value="5">Junio</option>
+                                <option value="6">Julio</option>
+                                <option value="7">Agosto</option>
+                                <option value="8">Septiembre</option>
+                                <option value="9">Octubre</option>
+                                <option value="10">Noviembre</option>
+                                <option value="11">Diciembre</option>
+                            </select>
+                            <label>Mes</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input id="year" type="number" class="validate" value="2024" disabled>
+                            <label for="year">Año</label>
+                        </div>
+                    </div>
                     <div class="input-field col s6">
                         <input id="description" type="text" class="validate" required>
                         <label for="description">Descripción</label>
@@ -22,29 +45,7 @@
                         <label for="amount">Monto</label>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="input-field col s6">
-                        <select id="month">
-                            <option value="0">Enero</option>
-                            <option value="1">Febrero</option>
-                            <option value="2">Marzo</option>
-                            <option value="3">Abril</option>
-                            <option value="4">Mayo</option>
-                            <option value="5">Junio</option>
-                            <option value="6">Julio</option>
-                            <option value="7">Agosto</option>
-                            <option value="8">Septiembre</option>
-                            <option value="9">Octubre</option>
-                            <option value="10">Noviembre</option>
-                            <option value="11">Diciembre</option>
-                        </select>
-                        <label>Mes</label>
-                    </div>
-                    <div class="input-field col s6">
-                        <input id="year" type="number" class="validate" required>
-                        <label for="year">Año</label>
-                    </div>
-                </div>
+                
                 <button class="btn waves-effect waves-light" type="submit">Agregar Gasto</button>
             </form>
         </div>

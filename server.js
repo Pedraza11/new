@@ -70,6 +70,32 @@ app.get('/expenses', async (req, res) => {
     }
 });
 
+// Ruta para obtener el resumen mensual
+app.get('/monthly-summary', async (req, res) => {
+    const { year } = req.query;
+    try {
+        const client = await pool.connect();
+        const result = await client.query(
+            `SELECT month, year, SUM(amount) as total 
+             FROM expenses 
+             WHERE year = $1 
+             GROUP BY month, year 
+             ORDER BY year, month`,
+            [year]
+        );
+        client.release();
+        const summary = result.rows.map(row => ({
+            month: row.month,
+            year: row.year,
+            total: parseFloat(row.total)
+        }));
+        res.status(200).json(summary);
+    } catch (error) {
+        console.error('Error al obtener resumen mensual:', error);
+        res.status(500).send('Error al obtener resumen mensual');
+    }
+});
+
 // Ruta para eliminar un gasto por ID
 app.delete('/delete-expense/:id', async (req, res) => {
     const expenseId = req.params.id;
@@ -82,6 +108,27 @@ app.delete('/delete-expense/:id', async (req, res) => {
     } catch (error) {
         console.error('Error al eliminar gasto:', error);
         res.status(500).send('Error al eliminar gasto');
+    }
+});
+
+// Ruta para actualizar un gasto por ID
+app.put('/edit-expense/:id', async (req, res) => {
+    const expenseId = req.params.id;
+    const { description, amount, date, month, year } = req.body;
+    try {
+        const client = await pool.connect();
+        const result = await client.query(
+            `UPDATE expenses 
+             SET description = $1, amount = $2, date = $3, month = $4, year = $5 
+             WHERE id = $6`,
+            [description, amount, date, month, year, expenseId]
+        );
+        client.release();
+        console.log('Gasto actualizado:', result.rowCount);
+        res.status(200).send('Gasto actualizado');
+    } catch (error) {
+        console.error('Error al actualizar gasto:', error);
+        res.status(500).send('Error al actualizar gasto');
     }
 });
 
